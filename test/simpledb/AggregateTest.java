@@ -1,29 +1,28 @@
 package simpledb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import junit.framework.JUnit4TestAdapter;
-
 import org.junit.Before;
 import org.junit.Test;
-
 import simpledb.systemtest.SimpleDbTestBase;
+
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class AggregateTest extends SimpleDbTestBase {
 
   int width1 = 2;
-  OpIterator scan1;
-  OpIterator scan2;
-  OpIterator scan3;
+  simpledb.OpIterator scan1;
+  simpledb.OpIterator scan2;
+  simpledb.OpIterator scan3;
 
-  OpIterator sum;
-  OpIterator sumstring;
+  simpledb.OpIterator sum;
+  simpledb.OpIterator sumstring;
 
-  OpIterator avg;
-  OpIterator max;
-  OpIterator min;
-  OpIterator count;
+  simpledb.OpIterator avg;
+  simpledb.OpIterator max;
+  simpledb.OpIterator min;
+  simpledb.OpIterator count;
 
   /**
    * Initialize each unit test
@@ -86,10 +85,10 @@ public class AggregateTest extends SimpleDbTestBase {
    * Unit test for Aggregate.getTupleDesc()
    */
   @Test public void getTupleDesc() {
-    Aggregate op = new Aggregate(scan1, 0, 0,
-        Aggregator.Op.MIN);
-    TupleDesc expected = Utility.getTupleDesc(2);
-    TupleDesc actual = op.getTupleDesc();
+    simpledb.Aggregate op = new simpledb.Aggregate(scan1, 0, 0,
+        simpledb.Aggregator.Op.MIN);
+    simpledb.TupleDesc expected = simpledb.Utility.getTupleDesc(2);
+    simpledb.TupleDesc actual = op.getTupleDesc();
     assertEquals(expected, actual);
   }
 
@@ -97,8 +96,8 @@ public class AggregateTest extends SimpleDbTestBase {
    * Unit test for Aggregate.rewind()
    */
   @Test public void rewind() throws Exception {
-    Aggregate op = new Aggregate(scan1, 1, 0,
-        Aggregator.Op.MIN);
+    simpledb.Aggregate op = new simpledb.Aggregate(scan1, 1, 0,
+        simpledb.Aggregator.Op.MIN);
     op.open();
     while (op.hasNext()) {
       assertNotNull(op.next());
@@ -114,8 +113,8 @@ public class AggregateTest extends SimpleDbTestBase {
    * Unit test for Aggregate.getNext() using a count aggregate with string types
    */
   @Test public void countStringAggregate() throws Exception {
-    Aggregate op = new Aggregate(scan2, 1, 0,
-        Aggregator.Op.COUNT);
+    simpledb.Aggregate op = new simpledb.Aggregate(scan2, 1, 0,
+        simpledb.Aggregator.Op.COUNT);
     op.open();
     count.open();
     TestUtil.matchAllTuples(count, op);
@@ -125,8 +124,8 @@ public class AggregateTest extends SimpleDbTestBase {
    * Unit test for Aggregate.getNext() using a count aggregate with string types
    */
   @Test public void sumStringGroupBy() throws Exception {
-    Aggregate op = new Aggregate(scan3, 1, 0,
-        Aggregator.Op.SUM);
+    simpledb.Aggregate op = new simpledb.Aggregate(scan3, 1, 0,
+        simpledb.Aggregator.Op.SUM);
     op.open();
     sumstring.open();
     TestUtil.matchAllTuples(sumstring, op);
@@ -136,8 +135,8 @@ public class AggregateTest extends SimpleDbTestBase {
    * Unit test for Aggregate.getNext() using a sum aggregate
    */
   @Test public void sumAggregate() throws Exception {
-    Aggregate op = new Aggregate(scan1, 1, 0,
-        Aggregator.Op.SUM);
+    simpledb.Aggregate op = new simpledb.Aggregate(scan1, 1, 0,
+        simpledb.Aggregator.Op.SUM);
     op.open();
     sum.open();
     TestUtil.matchAllTuples(sum, op);
@@ -147,8 +146,8 @@ public class AggregateTest extends SimpleDbTestBase {
    * Unit test for Aggregate.getNext() using an avg aggregate
    */
   @Test public void avgAggregate() throws Exception {
-    Aggregate op = new Aggregate(scan1, 1, 0,
-       Aggregator.Op.AVG);
+    simpledb.Aggregate op = new simpledb.Aggregate(scan1, 1, 0,
+       simpledb.Aggregator.Op.AVG);
     op.open();
     avg.open();
     TestUtil.matchAllTuples(avg, op);
@@ -158,8 +157,8 @@ public class AggregateTest extends SimpleDbTestBase {
    * Unit test for Aggregate.getNext() using a max aggregate
    */
   @Test public void maxAggregate() throws Exception {
-    Aggregate op = new Aggregate(scan1, 1, 0,
-        Aggregator.Op.MAX);
+    simpledb.Aggregate op = new simpledb.Aggregate(scan1, 1, 0,
+        simpledb.Aggregator.Op.MAX);
     op.open();
     max.open();
     TestUtil.matchAllTuples(max, op);
@@ -169,8 +168,8 @@ public class AggregateTest extends SimpleDbTestBase {
    * Unit test for Aggregate.getNext() using a min aggregate
    */
   @Test public void minAggregate() throws Exception {
-    Aggregate op = new Aggregate(scan1, 1, 0,
-       Aggregator.Op.MIN);
+    simpledb.Aggregate op = new simpledb.Aggregate(scan1, 1, 0,
+       simpledb.Aggregator.Op.MIN);
     op.open();
     min.open();
     TestUtil.matchAllTuples(min, op);
