@@ -4,6 +4,6 @@ bin/
 dist/
 log
 .idea
-out/
-lib/
+out
+lib
 *.iml
