@@ -718,7 +718,7 @@ class TupleArrayIterator implements OpIterator {
         it = tups.iterator();
     }
 
-    /** @return true if the iterator has more items. */
+    /** @return true if the tupleIterator has more items. */
     public boolean hasNext() throws DbException, TransactionAbortedException {
         return it.hasNext();
     }
@@ -727,7 +727,7 @@ class TupleArrayIterator implements OpIterator {
      * Gets the next tuple from the operator (typically implementing by reading
      * from a child operator or an access method).
      *
-     * @return The next tuple in the iterator, or null if there are no more
+     * @return The next tuple in the tupleIterator, or null if there are no more
      *         tuples.
      */
     public Tuple next() throws DbException, TransactionAbortedException,
@@ -736,7 +736,7 @@ class TupleArrayIterator implements OpIterator {
     }
 
     /**
-     * Resets the iterator to the start.
+     * Resets the tupleIterator to the start.
      *
      * @throws DbException
      *             When rewind is unsupported.
@@ -753,7 +753,7 @@ class TupleArrayIterator implements OpIterator {
     }
 
     /**
-     * Closes the iterator.
+     * Closes the tupleIterator.
      */
     public void close() {
     }

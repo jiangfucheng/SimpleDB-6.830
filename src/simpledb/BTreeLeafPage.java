@@ -476,23 +476,23 @@ public class BTreeLeafPage extends BTreePage {
 	}
 
 	/**
-	 * @return an iterator over all tuples on this page (calling remove on this iterator throws an UnsupportedOperationException)
-	 * (note that this iterator shouldn't return tuples in empty slots!)
+	 * @return an tupleIterator over all tuples on this page (calling remove on this tupleIterator throws an UnsupportedOperationException)
+	 * (note that this tupleIterator shouldn't return tuples in empty slots!)
 	 */
 	public Iterator<Tuple> iterator() {
 		return new BTreeLeafPageIterator(this);
 	}
 
 	/**
-	 * @return a reverse iterator over all tuples on this page (calling remove on this iterator throws an UnsupportedOperationException)
-	 * (note that this iterator shouldn't return tuples in empty slots!)
+	 * @return a reverse tupleIterator over all tuples on this page (calling remove on this tupleIterator throws an UnsupportedOperationException)
+	 * (note that this tupleIterator shouldn't return tuples in empty slots!)
 	 */
 	public Iterator<Tuple> reverseIterator() {
 		return new BTreeLeafPageReverseIterator(this);
 	}
 
 	/**
-	 * protected method used by the iterator to get the ith tuple out of this page
+	 * protected method used by the tupleIterator to get the ith tuple out of this page
 	 * @param i - the index of the tuple
 	 * @return the ith tuple in the page
 	 * @throws NoSuchElementException

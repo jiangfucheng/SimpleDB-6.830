@@ -159,7 +159,7 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	}
 
 	/**
-	 * Unit test for BTreeLeafPage.iterator()
+	 * Unit test for BTreeLeafPage.tupleIterator()
 	 */
 	@Test public void testIterator() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
@@ -269,7 +269,7 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 			page0.insertTuple(addition);
 			assertEquals(free-i-1, page0.getNumEmptySlots());
 
-			// loop through the iterator to ensure that the tuple actually exists
+			// loop through the tupleIterator to ensure that the tuple actually exists
 			// on the page
 			Iterator<Tuple> it = page0.iterator();
 			boolean found = false;

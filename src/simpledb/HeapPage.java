@@ -315,8 +315,8 @@ public class HeapPage implements Page {
 	}
 
 	/**
-	 * @return an iterator over all tuples on this page (calling remove on this iterator throws an UnsupportedOperationException)
-	 * (note that this iterator shouldn't return tuples in empty slots!)
+	 * @return an tupleIterator over all tuples on this page (calling remove on this tupleIterator throws an UnsupportedOperationException)
+	 * (note that this tupleIterator shouldn't return tuples in empty slots!)
 	 */
 	public Iterator<Tuple> iterator() {
 		return new TupleIterator();

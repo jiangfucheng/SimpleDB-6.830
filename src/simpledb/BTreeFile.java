@@ -1,9 +1,12 @@
 package simpledb;
 
-import java.io.*;
-import java.util.*;
-
 import simpledb.Predicate.Op;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * BTreeFile is an implementation of a DbFile that stores a B+ tree.
@@ -181,7 +184,7 @@ public class BTreeFile implements DbFile {
 	 * nodes along the path to the leaf node with READ_ONLY permission, and locks the 
 	 * leaf node with permission perm.
 	 * 
-	 * If f is null, it finds the left-most leaf page -- used for the iterator
+	 * If f is null, it finds the left-most leaf page -- used for the tupleIterator
 	 * 
 	 * @param tid - the transaction id
 	 * @param dirtypages - the list of dirty pages which should be updated with all new dirty pages
@@ -200,7 +203,7 @@ public class BTreeFile implements DbFile {
 	
 	/**
 	 * Convenience method to find a leaf page when there is no dirtypages HashMap.
-	 * Used by the BTreeFile iterator.
+	 * Used by the BTreeFile tupleIterator.
 	 * @see #findLeafPage(TransactionId, HashMap, BTreePageId, Permissions, Field)
 	 * 
 	 * @param tid - the transaction id
@@ -1051,19 +1054,19 @@ public class BTreeFile implements DbFile {
 	 * 
 	 * @param tid - the transaction id
 	 * @param ipred - the index predicate value to filter on
-	 * @return an iterator for the filtered tuples
+	 * @return an tupleIterator for the filtered tuples
 	 */
 	public DbFileIterator indexIterator(TransactionId tid, IndexPredicate ipred) {
 		return new BTreeSearchIterator(this, tid, ipred);
 	}
 
 	/**
-	 * Get an iterator for all tuples in this B+ tree file in sorted order. This method 
+	 * Get an tupleIterator for all tuples in this B+ tree file in sorted order. This method
 	 * will acquire a read lock on the affected pages of the file, and may block until 
 	 * the lock can be acquired.
 	 * 
 	 * @param tid - the transaction id
-	 * @return an iterator for all the tuples in this file
+	 * @return an tupleIterator for all the tuples in this file
 	 */
 	public DbFileIterator iterator(TransactionId tid) {
 		return new BTreeFileIterator(this, tid);
@@ -1083,7 +1086,7 @@ class BTreeFileIterator extends AbstractDbFileIterator {
 	BTreeFile f;
 
 	/**
-	 * Constructor for this iterator
+	 * Constructor for this tupleIterator
 	 * @param f - the BTreeFile containing the tuples
 	 * @param tid - the transaction id
 	 */
@@ -1093,7 +1096,7 @@ class BTreeFileIterator extends AbstractDbFileIterator {
 	}
 
 	/**
-	 * Open this iterator by getting an iterator on the first leaf page
+	 * Open this tupleIterator by getting an tupleIterator on the first leaf page
 	 */
 	public void open() throws DbException, TransactionAbortedException {
 		BTreeRootPtrPage rootPtr = (BTreeRootPtrPage) Database.getBufferPool().getPage(
@@ -1134,7 +1137,7 @@ class BTreeFileIterator extends AbstractDbFileIterator {
 	}
 
 	/**
-	 * rewind this iterator back to the beginning of the tuples
+	 * rewind this tupleIterator back to the beginning of the tuples
 	 */
 	public void rewind() throws DbException, TransactionAbortedException {
 		close();
@@ -1142,7 +1145,7 @@ class BTreeFileIterator extends AbstractDbFileIterator {
 	}
 
 	/**
-	 * close the iterator
+	 * close the tupleIterator
 	 */
 	public void close() {
 		super.close();
@@ -1165,7 +1168,7 @@ class BTreeSearchIterator extends AbstractDbFileIterator {
 	IndexPredicate ipred;
 
 	/**
-	 * Constructor for this iterator
+	 * Constructor for this tupleIterator
 	 * @param f - the BTreeFile containing the tuples
 	 * @param tid - the transaction id
 	 * @param ipred - the predicate to filter on
@@ -1177,7 +1180,7 @@ class BTreeSearchIterator extends AbstractDbFileIterator {
 	}
 
 	/**
-	 * Open this iterator by getting an iterator on the first leaf page applicable
+	 * Open this tupleIterator by getting an tupleIterator on the first leaf page applicable
 	 * for the given predicate operation
 	 */
 	public void open() throws DbException, TransactionAbortedException {
@@ -1239,7 +1242,7 @@ class BTreeSearchIterator extends AbstractDbFileIterator {
 	}
 
 	/**
-	 * rewind this iterator back to the beginning of the tuples
+	 * rewind this tupleIterator back to the beginning of the tuples
 	 */
 	public void rewind() throws DbException, TransactionAbortedException {
 		close();
@@ -1247,7 +1250,7 @@ class BTreeSearchIterator extends AbstractDbFileIterator {
 	}
 
 	/**
-	 * close the iterator
+	 * close the tupleIterator
 	 */
 	public void close() {
 		super.close();

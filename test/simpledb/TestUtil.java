@@ -15,7 +15,7 @@ public class TestUtil {
 
     /**
      * @return a OpIterator over a list of tuples constructed over the data
-     *   provided in the constructor. This iterator is already open.
+     *   provided in the constructor. This tupleIterator is already open.
      * @param width the number of fields in each tuple
      * @param tupdata an array such that the ith element the jth tuple lives
      *   in slot j * width + i
@@ -40,7 +40,7 @@ public class TestUtil {
 
     /**
      * @return a OpIterator over a list of tuples constructed over the data
-     *   provided in the constructor. This iterator is already open.
+     *   provided in the constructor. This tupleIterator is already open.
      * @param width the number of fields in each tuple
      * @param tupdata an array such that the ith element the jth tuple lives
      *   in slot j * width + i.  Objects can be strings or ints;  tuples must all be of same type.

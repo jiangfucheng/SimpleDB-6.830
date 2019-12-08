@@ -1,15 +1,15 @@
 package simpledb;
 
-import simpledb.systemtest.SimpleDbTestBase;
-import simpledb.systemtest.SystemTestUtil;
-
-import java.util.*;
+import junit.framework.JUnit4TestAdapter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import simpledb.systemtest.SimpleDbTestBase;
+import simpledb.systemtest.SystemTestUtil;
+
+import java.util.NoSuchElementException;
 
 import static org.junit.Assert.*;
-import junit.framework.JUnit4TestAdapter;
 
 public class HeapFileReadTest extends SimpleDbTestBase {
     private HeapFile hf;
@@ -103,7 +103,7 @@ public class HeapFileReadTest extends SimpleDbTestBase {
 
     @Test
     public void testIteratorClose() throws Exception {
-        // make more than 1 page. Previous closed iterator would start fetching
+        // make more than 1 page. Previous closed tupleIterator would start fetching
         // from page 1.
         HeapFile twoPageFile = SystemTestUtil.createRandomHeapFile(2, 520,
                 null, null);

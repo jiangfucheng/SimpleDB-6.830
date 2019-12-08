@@ -1,19 +1,18 @@
 package simpledb;
 
+import junit.framework.JUnit4TestAdapter;
+import org.junit.Before;
+import org.junit.Test;
 import simpledb.TestUtil.SkeletonFile;
 import simpledb.systemtest.SimpleDbTestBase;
 import simpledb.systemtest.SystemTestUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import junit.framework.JUnit4TestAdapter;
+import static org.junit.Assert.*;
 
 public class HeapPageReadTest extends SimpleDbTestBase {
     private HeapPageId pid;
@@ -81,7 +80,7 @@ public class HeapPageReadTest extends SimpleDbTestBase {
     }
 
     /**
-     * Unit test for HeapPage.iterator()
+     * Unit test for HeapPage.tupleIterator()
      */
     @Test public void testIterator() throws Exception {
         HeapPage page = new HeapPage(pid, EXAMPLE_DATA);

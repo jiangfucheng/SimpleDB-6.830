@@ -29,7 +29,7 @@ public abstract class AbstractDbFileIterator implements DbFileIterator {
     }
 
     /** Reads the next tuple from the underlying source.
-    @return the next Tuple in the iterator, null if the iteration is finished. */
+    @return the next Tuple in the tupleIterator, null if the iteration is finished. */
     protected abstract Tuple readNext() throws DbException, TransactionAbortedException;
 
     private Tuple next = null;

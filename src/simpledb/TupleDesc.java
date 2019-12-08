@@ -42,7 +42,7 @@ public class TupleDesc implements Serializable {
 	}
 
 	/**
-	 * @return An iterator which iterates over all the field TDItems
+	 * @return An tupleIterator which iterates over all the field TDItems
 	 * that are included in this TupleDesc
 	 */
 	public Iterator<TDItem> iterator() {

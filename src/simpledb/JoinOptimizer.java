@@ -28,7 +28,7 @@ public class JoinOptimizer {
     }
 
     /**
-     * Return best iterator for computing a given logical join, given the
+     * Return best tupleIterator for computing a given logical join, given the
      * specified statistics, and the provided left and right subplans. Note that
      * there is insufficient information to determine which plan should be the
      * inner/outer here -- because OpIterator's don't provide any cardinality

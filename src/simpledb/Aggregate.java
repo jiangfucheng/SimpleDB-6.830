@@ -112,7 +112,7 @@ public class Aggregate extends Operator {
      * The name of an aggregate column should be informative. For example:
      * "aggName(aop) (child_td.getFieldName(afield))" where aop and afield are
      * given in the constructor, and child_td is the TupleDesc of the child
-     * iterator.
+     * tupleIterator.
      */
     public TupleDesc getTupleDesc() {
 	// some code goes here

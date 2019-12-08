@@ -602,23 +602,23 @@ public class BTreeInternalPage extends BTreePage {
 	}
 
 	/**
-	 * @return an iterator over all entries on this page (calling remove on this iterator throws an UnsupportedOperationException)
-	 * (note that this iterator shouldn't return entries in empty slots!)
+	 * @return an tupleIterator over all entries on this page (calling remove on this tupleIterator throws an UnsupportedOperationException)
+	 * (note that this tupleIterator shouldn't return entries in empty slots!)
 	 */
 	public Iterator<BTreeEntry> iterator() {
 		return new BTreeInternalPageIterator(this);
 	}
 	
 	/**
-	 * @return a reverse iterator over all entries on this page (calling remove on this iterator throws an UnsupportedOperationException)
-	 * (note that this iterator shouldn't return entries in empty slots!)
+	 * @return a reverse tupleIterator over all entries on this page (calling remove on this tupleIterator throws an UnsupportedOperationException)
+	 * (note that this tupleIterator shouldn't return entries in empty slots!)
 	 */
 	public Iterator<BTreeEntry> reverseIterator() {
 		return new BTreeInternalPageReverseIterator(this);
 	}
 
 	/**
-	 * protected method used by the iterator to get the ith key out of this page
+	 * protected method used by the tupleIterator to get the ith key out of this page
 	 * @param i - the index of the key
 	 * @return the ith key
 	 * @throws NoSuchElementException
@@ -644,7 +644,7 @@ public class BTreeInternalPage extends BTreePage {
 	}
 
 	/**
-	 * protected method used by the iterator to get the ith child page id out of this page
+	 * protected method used by the tupleIterator to get the ith child page id out of this page
 	 * @param i - the index of the child page id
 	 * @return the ith child page id
 	 * @throws NoSuchElementException

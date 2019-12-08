@@ -60,11 +60,11 @@ public interface DbFile {
         throws DbException, IOException, TransactionAbortedException;
 
     /**
-     * Returns an iterator over all the tuples stored in this DbFile. The
-     * iterator must use {@link BufferPool#getPage}, rather than
+     * Returns an tupleIterator over all the tuples stored in this DbFile. The
+     * tupleIterator must use {@link BufferPool#getPage}, rather than
      * {@link #readPage} to iterate through the pages.
      *
-     * @return an iterator over all the tuples stored in this DbFile.
+     * @return an tupleIterator over all the tuples stored in this DbFile.
      */
     public DbFileIterator iterator(TransactionId tid);
 

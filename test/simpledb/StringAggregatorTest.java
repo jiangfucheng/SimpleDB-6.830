@@ -39,7 +39,7 @@ public class StringAggregatorTest extends SimpleDbTestBase {
   }
 
   /**
-   * Test String.mergeTupleIntoGroup() and iterator() over a COUNT
+   * Test String.mergeTupleIntoGroup() and tupleIterator() over a COUNT
    */
   @Test public void mergeCount() throws Exception {
     scan1.open();
@@ -54,7 +54,7 @@ public class StringAggregatorTest extends SimpleDbTestBase {
   }
 
   /**
-   * Test StringAggregator.iterator() for OpIterator behaviour
+   * Test StringAggregator.tupleIterator() for OpIterator behaviour
    */
   @Test public void testIterator() throws Exception {
     // first, populate the aggregator via sum over scan1
@@ -99,7 +99,7 @@ public class StringAggregatorTest extends SimpleDbTestBase {
     it.close();
     try {
       it.next();
-      throw new Exception("StringAggreator iterator yielded tuple after close");
+      throw new Exception("StringAggreator tupleIterator yielded tuple after close");
     } catch (Exception e) {
       // explicitly ignored
     }

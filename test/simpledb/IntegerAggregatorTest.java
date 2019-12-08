@@ -64,7 +64,7 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
   }
 
   /**
-   * Test IntegerAggregator.mergeTupleIntoGroup() and iterator() over a sum
+   * Test IntegerAggregator.mergeTupleIntoGroup() and tupleIterator() over a sum
    */
   @Test public void mergeSum() throws Exception {
     scan1.open();
@@ -79,7 +79,7 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
   }
 
   /**
-   * Test IntegerAggregator.mergeTupleIntoGroup() and iterator() over a min
+   * Test IntegerAggregator.mergeTupleIntoGroup() and tupleIterator() over a min
    */
   @Test public void mergeMin() throws Exception {
     scan1.open();
@@ -95,7 +95,7 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
   }
 
   /**
-   * Test IntegerAggregator.mergeTupleIntoGroup() and iterator() over a max
+   * Test IntegerAggregator.mergeTupleIntoGroup() and tupleIterator() over a max
    */
   @Test public void mergeMax() throws Exception {
     scan1.open();
@@ -111,7 +111,7 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
   }
 
   /**
-   * Test IntegerAggregator.mergeTupleIntoGroup() and iterator() over an avg
+   * Test IntegerAggregator.mergeTupleIntoGroup() and tupleIterator() over an avg
    */
   @Test public void mergeAvg() throws Exception {
     scan1.open();
@@ -127,7 +127,7 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
   }
 
   /**
-   * Test IntegerAggregator.iterator() for OpIterator behaviour
+   * Test IntegerAggregator.tupleIterator() for OpIterator behaviour
    */
   @Test public void testIterator() throws Exception {
     // first, populate the aggregator via sum over scan1
@@ -172,7 +172,7 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
     it.close();
     try {
       it.next();
-      throw new Exception("IntegerAggregator iterator yielded tuple after close");
+      throw new Exception("IntegerAggregator tupleIterator yielded tuple after close");
     } catch (Exception e) {
       // explicitly ignored
     }

@@ -34,18 +34,18 @@ public abstract class Operator implements OpIterator {
     }
 
     /**
-     * Returns the next Tuple in the iterator, or null if the iteration is
+     * Returns the next Tuple in the tupleIterator, or null if the iteration is
      * finished. Operator uses this method to implement both <code>next</code>
      * and <code>hasNext</code>.
      * 
-     * @return the next Tuple in the iterator, or null if the iteration is
+     * @return the next Tuple in the tupleIterator, or null if the iteration is
      *         finished.
      */
     protected abstract Tuple fetchNext() throws DbException,
             TransactionAbortedException;
 
     /**
-     * Closes this iterator. If overridden by a subclass, they should call
+     * Closes this tupleIterator. If overridden by a subclass, they should call
      * super.close() in order for Operator's internal state to be consistent.
      */
     public void close() {

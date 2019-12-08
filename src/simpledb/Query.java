@@ -67,14 +67,14 @@ public class Query implements Serializable {
     }
 
     /**
-     * Returns the next tuple, or throws NoSuchElementException if the iterator
+     * Returns the next tuple, or throws NoSuchElementException if the tupleIterator
      * is closed.
      * 
-     * @return The next tuple in the iterator
+     * @return The next tuple in the tupleIterator
      * @throws DbException
      *             If there is an error in the database system
      * @throws NoSuchElementException
-     *             If the iterator has finished iterating
+     *             If the tupleIterator has finished iterating
      * @throws TransactionAbortedException
      *             If the transaction is aborted (e.g., due to a deadlock)
      */
@@ -86,7 +86,7 @@ public class Query implements Serializable {
         return op.next();
     }
 
-    /** Close the iterator */
+    /** Close the tupleIterator */
     public void close() throws IOException {
         op.close();
         started = false;

@@ -57,7 +57,7 @@ public class SimpleDb {
             DbFileIterator it = table.iterator(tid);
             
             if(null == it){
-               System.out.println("Error: method HeapFile.iterator(TransactionId tid) not yet implemented!");
+               System.out.println("Error: method HeapFile.tupleIterator(TransactionId tid) not yet implemented!");
             } else {
                it.open();
                while (it.hasNext()) {

@@ -92,7 +92,7 @@ public class Tuple implements Serializable {
 	}
 
 	/**
-	 * @return An iterator which iterates over all the fields of this tuple
+	 * @return An tupleIterator which iterates over all the fields of this tuple
 	 */
 	public Iterator<Field> fields() {
 		// some code goes here

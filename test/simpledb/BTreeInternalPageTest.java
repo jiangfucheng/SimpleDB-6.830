@@ -117,7 +117,7 @@ public class BTreeInternalPageTest extends SimpleDbTestBase {
 	}
 
 	/**
-	 * Unit test for BTreeInternalPage.iterator()
+	 * Unit test for BTreeInternalPage.tupleIterator()
 	 */
 	@Test public void testIterator() throws Exception {
 		BTreeInternalPage page = new BTreeInternalPage(pid, EXAMPLE_DATA, 0);
@@ -245,7 +245,7 @@ public class BTreeInternalPageTest extends SimpleDbTestBase {
 			page.insertEntry(addition);
 			assertEquals(free-i-1, page.getNumEmptySlots());
 
-			// loop through the iterator to ensure that the entry actually exists
+			// loop through the tupleIterator to ensure that the entry actually exists
 			// on the page
 			Iterator<BTreeEntry> it = page.iterator();
 			boolean found = false;

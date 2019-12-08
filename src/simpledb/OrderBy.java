@@ -17,7 +17,7 @@ public class OrderBy extends Operator {
     private boolean asc;
 
     /**
-     * Creates a new OrderBy node over the tuples from the iterator.
+     * Creates a new OrderBy node over the tuples from the tupleIterator.
      * 
      * @param orderbyField
      *            the field to which the sort is applied.

@@ -15,7 +15,7 @@ public class TupleIterator implements OpIterator {
     Iterable<Tuple> tuples = null;
 
     /**
-     * Constructs an iterator from the specified Iterable, and the specified
+     * Constructs an tupleIterator from the specified Iterable, and the specified
      * descriptor.
      * 
      * @param tuples

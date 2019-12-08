@@ -36,6 +36,7 @@ public class BufferPool {
 	//页面缓冲池
 	private List<Page> pagePool;
 
+
 	/**
 	 * Creates a BufferPool that caches up to numPages pages.
 	 *
@@ -77,12 +78,15 @@ public class BufferPool {
 	 */
 	public Page getPage(TransactionId tid, PageId pid, Permissions perm)
 			throws TransactionAbortedException, DbException {
-		for (Page page : pagePool) {
-			if(page.getId().equals(pid))
+		for(Page page : pagePool){
+			if(page.getId().equals(pid)){
 				return page;
+			}
 		}
-		if(pagePool.size() >= numPages) throw new DbException("页面缓冲池已满");
-		return null;
+		if (pagePool.size() == pageSize) throw new DbException("缓冲池已满");
+		int tableId = pid.getTableId();
+		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
+		return dbFile.readPage(pid);
 	}
 
 	/**
