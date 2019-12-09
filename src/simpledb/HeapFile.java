@@ -143,6 +143,8 @@ public class HeapFile implements DbFile {
 
 		private Iterator<Tuple> tupleIterator;
 
+		private boolean opened;
+
 		HeapFileIterator(TransactionId tid) {
 			this.numPages = numPages();
 			this.cur = -1;
@@ -153,21 +155,23 @@ public class HeapFile implements DbFile {
 
 		@Override
 		public void open() throws DbException, TransactionAbortedException {
-			reset(++cur);
+			this.opened = true;
 		}
 
 		@Override
 		public boolean hasNext() throws DbException, TransactionAbortedException {
+			if (!opened) return false;
+			if (tupleIterator == null || !tupleIterator.hasNext()) {
+				if (cur == numPages - 1) return false;
+				reset(++cur);
+			}
 			return cur < numPages && cur != -1 && tupleIterator.hasNext();
 		}
 
+
 		@Override
 		public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-			if(cur == -1 || cur >= numPages) throw new NoSuchElementException();
-			if (tupleIterator == null || !tupleIterator.hasNext()) {
-				if(cur == numPages - 1) throw new NoSuchElementException();
-				reset(++cur);
-			}
+			if (!opened || cur >= numPages) throw new NoSuchElementException();
 			return tupleIterator.next();
 		}
 
@@ -183,6 +187,7 @@ public class HeapFile implements DbFile {
 			pageId = null;
 			curPage = null;
 			tupleIterator = null;
+			this.opened = false;
 		}
 
 		private void reset(int curPageId) throws TransactionAbortedException, DbException {

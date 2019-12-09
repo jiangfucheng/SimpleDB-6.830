@@ -327,7 +327,7 @@ public class HeapPage implements Page {
 
 		@Override
 		public boolean hasNext() {
-			return idx < tuples.length && tuples[idx] != null;
+			return idx < numSlots && tuples[idx] != null;
 		}
 
 		@Override

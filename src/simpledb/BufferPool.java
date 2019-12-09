@@ -83,10 +83,12 @@ public class BufferPool {
 				return page;
 			}
 		}
-		if (pagePool.size() == pageSize) throw new DbException("缓冲池已满");
+		if (pagePool.size() == numPages) throw new DbException("缓冲池已满");
 		int tableId = pid.getTableId();
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
-		return dbFile.readPage(pid);
+		Page res = dbFile.readPage(pid);
+		pagePool.add(res);
+		return res;
 	}
 
 	/**

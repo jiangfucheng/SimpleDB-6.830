@@ -17,7 +17,7 @@ public class Tuple implements Serializable {
 	private TupleDesc tupleDesc;
 
 	private List<Field> fields;
-
+	//记录号
 	private RecordId recordId;
 
 	/**
@@ -35,7 +35,6 @@ public class Tuple implements Serializable {
 	 * @return The TupleDesc representing the schema of this tuple.
 	 */
 	public TupleDesc getTupleDesc() {
-		// some code goes here
 		return this.tupleDesc;
 	}
 
@@ -86,16 +85,23 @@ public class Tuple implements Serializable {
 	 * <p>
 	 * where \t is any whitespace (except a newline)
 	 */
+	@Override
 	public String toString() {
-		// some code goes here
-		throw new UnsupportedOperationException("Implement this");
+		StringBuilder builder = new StringBuilder();
+		for(Field field : fields){
+			builder.append(field).append(" ");
+		}
+		if(builder.length() > 0){
+			builder.deleteCharAt(builder.length() - 1);
+		}
+		//System.out.println(builder.toString());
+		return builder.toString();
 	}
 
 	/**
 	 * @return An tupleIterator which iterates over all the fields of this tuple
 	 */
 	public Iterator<Field> fields() {
-		// some code goes here
 		return fields.iterator();
 	}
 
