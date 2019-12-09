@@ -16,6 +16,7 @@ public class SeqScan implements OpIterator {
 	private String tableAlias;
 	private DbFileIterator iterator;
 
+	private boolean opened;
 	/**
 	 * Creates a sequential scan over the specified table as a part of the
 	 * specified transaction.
@@ -73,6 +74,7 @@ public class SeqScan implements OpIterator {
 	}
 
 	public void open() throws DbException, TransactionAbortedException {
+		opened = true;
 		iterator.open();
 	}
 
@@ -91,20 +93,24 @@ public class SeqScan implements OpIterator {
 	}
 
 	public boolean hasNext() throws TransactionAbortedException, DbException {
+		if(!opened) throw new IllegalStateException();
 		return iterator.hasNext();
 	}
 
 	public Tuple next() throws NoSuchElementException,
 			TransactionAbortedException, DbException {
+		if(!opened) throw new IllegalStateException();
 		return iterator.next();
 	}
 
 	public void close() {
+		this.opened = false;
 		iterator.close();
 	}
 
 	public void rewind() throws DbException, NoSuchElementException,
 			TransactionAbortedException {
+		if(!opened) throw new IllegalStateException();
 		iterator.rewind();
 	}
 }
