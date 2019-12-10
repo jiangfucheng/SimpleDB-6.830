@@ -46,7 +46,6 @@ public class TupleDesc implements Serializable {
 	 * that are included in this TupleDesc
 	 */
 	public Iterator<TDItem> iterator() {
-		// some code goes here
 		return tdItems.iterator();
 	}
 
@@ -84,7 +83,6 @@ public class TupleDesc implements Serializable {
 	 *               TupleDesc. It must contain at least one entry.
 	 */
 	public TupleDesc(Type[] typeAr) {
-		// some code goes here
 		this(typeAr, null);
 	}
 
@@ -92,7 +90,6 @@ public class TupleDesc implements Serializable {
 	 * @return the number of fields in this TupleDesc
 	 */
 	public int numFields() {
-		// some code goes here
 		return tdItems.size();
 	}
 
@@ -104,7 +101,6 @@ public class TupleDesc implements Serializable {
 	 * @throws NoSuchElementException if i is not a valid field reference.
 	 */
 	public String getFieldName(int i) throws NoSuchElementException {
-		// some code goes here
 		if (i < 0 || i >= tdItems.size()) throw new NoSuchElementException();
 		return tdItems.get(i).fieldName;
 	}
