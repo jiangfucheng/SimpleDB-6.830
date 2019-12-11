@@ -1,10 +1,7 @@
 package simpledb;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -46,7 +43,7 @@ public class BufferPool {
 	 */
 	public BufferPool(int numPages) {
 		this.numPages = numPages;
-		this.pagePool = new HashMap<>();
+		this.pagePool = new LinkedHashMap<>();
 	}
 
 	public static int getPageSize() {
@@ -80,10 +77,12 @@ public class BufferPool {
 	 */
 	public Page getPage(TransactionId tid, PageId pid, Permissions perm)
 			throws TransactionAbortedException, DbException {
-		Page res = null;
-		res = pagePool.get(pid);
-		if (res != null) return res;
-		if (pagePool.size() == numPages) throw new DbException("缓冲池已满");
+		Page res = pagePool.get(pid);
+		if (res != null) {
+			pagePool.put(pid, res);
+			return res;
+		}
+		if (pagePool.size() == numPages) evictPage();
 		int tableId = pid.getTableId();
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
 		res = dbFile.readPage(pid);
@@ -157,6 +156,7 @@ public class BufferPool {
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
 		ArrayList<Page> pages = dbFile.insertTuple(tid, t);
 		for (Page page : pages) {
+			if (pagePool.size() == numPages) evictPage();
 			pagePool.put(page.getId(), page);
 			page.markDirty(true, tid);
 		}
@@ -180,6 +180,7 @@ public class BufferPool {
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId());
 		ArrayList<Page> pages = dbFile.deleteTuple(tid, t);
 		for (Page page : pages) {
+			if (pagePool.size() == numPages) evictPage();
 			pagePool.put(page.getId(), page);
 			page.markDirty(true, tid);
 		}
@@ -191,9 +192,9 @@ public class BufferPool {
 	 * break simpledb if running in NO STEAL mode.
 	 */
 	public synchronized void flushAllPages() throws IOException {
-		// some code goes here
-		// not necessary for lab1
-
+		for (PageId pageId : pagePool.keySet()) {
+			flushPage(pageId);
+		}
 	}
 
 	/**
@@ -206,8 +207,7 @@ public class BufferPool {
 	 * are removed from the cache so they can be reused safely
 	 */
 	public synchronized void discardPage(PageId pid) {
-		// some code goes here
-		// not necessary for lab1
+		pagePool.remove(pid);
 	}
 
 	/**
@@ -216,8 +216,12 @@ public class BufferPool {
 	 * @param pid an ID indicating the page to flush
 	 */
 	private synchronized void flushPage(PageId pid) throws IOException {
-		// some code goes here
-		// not necessary for lab1
+		Page dirtyPage = pagePool.get(pid);
+		TransactionId transactionId = dirtyPage.isDirty();
+		if (transactionId == null) return;
+		//缓冲池里的页面一定原来在磁盘中，将页面重写写到磁盘中覆盖掉原来就旧的内容
+		Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(dirtyPage);
+		dirtyPage.markDirty(true, transactionId);
 	}
 
 	/**
@@ -233,8 +237,12 @@ public class BufferPool {
 	 * Flushes the page to disk to ensure dirty pages are updated on disk.
 	 */
 	private synchronized void evictPage() throws DbException {
-		// some code goes here
-		// not necessary for lab1
+		//用淘汰策略淘汰一个页面
+		Iterator<Map.Entry<PageId, Page>> iterator = pagePool.entrySet().iterator();
+		if(iterator.hasNext()){
+			iterator.next();
+			iterator.remove();
+		}
 	}
 
 	public Iterator<Map.Entry<PageId, Page>> iterator() {
