@@ -2,7 +2,9 @@ package simpledb;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -34,7 +36,7 @@ public class BufferPool {
 	private int numPages;
 
 	//页面缓冲池
-	private List<Page> pagePool;
+	private Map<PageId, Page> pagePool;
 
 
 	/**
@@ -44,7 +46,7 @@ public class BufferPool {
 	 */
 	public BufferPool(int numPages) {
 		this.numPages = numPages;
-		this.pagePool = new ArrayList<>();
+		this.pagePool = new HashMap<>();
 	}
 
 	public static int getPageSize() {
@@ -78,16 +80,14 @@ public class BufferPool {
 	 */
 	public Page getPage(TransactionId tid, PageId pid, Permissions perm)
 			throws TransactionAbortedException, DbException {
-		for(Page page : pagePool){
-			if(page.getId().equals(pid)){
-				return page;
-			}
-		}
+		Page res = null;
+		res = pagePool.get(pid);
+		if (res != null) return res;
 		if (pagePool.size() == numPages) throw new DbException("缓冲池已满");
 		int tableId = pid.getTableId();
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
-		Page res = dbFile.readPage(pid);
-		pagePool.add(res);
+		res = dbFile.readPage(pid);
+		pagePool.put(pid, res);
 		return res;
 	}
 
@@ -154,8 +154,12 @@ public class BufferPool {
 	 */
 	public void insertTuple(TransactionId tid, int tableId, Tuple t)
 			throws DbException, IOException, TransactionAbortedException {
-		// some code goes here
-		// not necessary for lab1
+		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
+		ArrayList<Page> pages = dbFile.insertTuple(tid, t);
+		for (Page page : pages) {
+			pagePool.put(page.getId(), page);
+			page.markDirty(true, tid);
+		}
 	}
 
 	/**
@@ -173,8 +177,12 @@ public class BufferPool {
 	 */
 	public void deleteTuple(TransactionId tid, Tuple t)
 			throws DbException, IOException, TransactionAbortedException {
-		// some code goes here
-		// not necessary for lab1
+		DbFile dbFile = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId());
+		ArrayList<Page> pages = dbFile.deleteTuple(tid, t);
+		for (Page page : pages) {
+			pagePool.put(page.getId(), page);
+			page.markDirty(true, tid);
+		}
 	}
 
 	/**
@@ -227,6 +235,10 @@ public class BufferPool {
 	private synchronized void evictPage() throws DbException {
 		// some code goes here
 		// not necessary for lab1
+	}
+
+	public Iterator<Map.Entry<PageId, Page>> iterator() {
+		return pagePool.entrySet().iterator();
 	}
 
 }

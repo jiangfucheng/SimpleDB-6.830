@@ -3,10 +3,8 @@ package simpledb;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.io.RandomAccessFile;
+import java.util.*;
 
 /**
  * HeapFile is an implementation of a DbFile that stores a collection of tuples
@@ -89,8 +87,12 @@ public class HeapFile implements DbFile {
 
 	// see DbFile.java for javadocs
 	public void writePage(Page page) throws IOException {
-		// some code goes here
-		// not necessary for lab1
+		//页面在文件中的偏移量
+		int offset = page.getId().getPageNumber() * BufferPool.getPageSize();
+		try (RandomAccessFile randomAccessFile = new RandomAccessFile(this.file, "rw")) {
+			randomAccessFile.skipBytes(offset);
+			randomAccessFile.write(page.getPageData());
+		}
 	}
 
 	/**
@@ -107,17 +109,38 @@ public class HeapFile implements DbFile {
 	// see DbFile.java for javadocs
 	public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
 			throws DbException, IOException, TransactionAbortedException {
-		// some code goes here
-		return null;
-		// not necessary for lab1
+		ArrayList<Page> res = new ArrayList<>();
+		BufferPool bufferPool = Database.getBufferPool();
+		int numPages = numPages();
+		boolean inserted = false;
+		HeapPage page = null;
+		for (int i = 0; i < numPages; i++) {
+			page = (HeapPage) bufferPool.getPage(tid, new HeapPageId(this.id, i), Permissions.READ_WRITE);
+			if (page.getNumEmptySlots() > 0) {
+				page.insertTuple(t);
+				res.add(page);
+				inserted = true;
+				break;
+			}
+		}
+		if (!inserted) {
+			page = new HeapPage(new HeapPageId(id, numPages), new byte[BufferPool.getPageSize()]);
+			page.insertTuple(t);
+			res.add(page);
+		}
+		writePage(page);
+		return res;
 	}
 
 	// see DbFile.java for javadocs
 	public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException,
 			TransactionAbortedException {
-		// some code goes here
-		return null;
-		// not necessary for lab1
+		ArrayList<Page> res = new ArrayList<>();
+		BufferPool bufferPool = Database.getBufferPool();
+		HeapPage page = (HeapPage) bufferPool.getPage(tid, t.getRecordId().getPageId(), Permissions.READ_WRITE);
+		page.deleteTuple(t);
+		res.add(page);
+		return res;
 	}
 
 	// see DbFile.java for javadocs
@@ -125,6 +148,9 @@ public class HeapFile implements DbFile {
 		return new HeapFileIterator(tid);
 	}
 
+	/**
+	 * 迭代整个表的所有元组
+	 */
 	private class HeapFileIterator implements DbFileIterator {
 		//页面数量
 		private int numPages;
@@ -161,7 +187,7 @@ public class HeapFile implements DbFile {
 		@Override
 		public boolean hasNext() throws DbException, TransactionAbortedException {
 			if (!opened) return false;
-			if (tupleIterator == null || !tupleIterator.hasNext()) {
+			while (tupleIterator == null || !tupleIterator.hasNext()) {
 				if (cur == numPages - 1) return false;
 				reset(++cur);
 			}
