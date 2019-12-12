@@ -15,6 +15,9 @@
     <property name="compile.debug" value="true"/>
     <property name="test.reports" location="testreport"/>
 
+    <property name="srcdir" location="src"/>
+    <property name="destdir" location="out/production/simple-db-hw"/>
+
     <property name="sourceversion" value="1.8"/>
 
     <path id="classpath.base">
@@ -166,7 +169,7 @@
     </target>
 
     <target name="compile" description="Compile code">
-        <Compile srcdir="${src}/java" destdir="${build.src}">
+        <Compile srcdir="${src}" destdir="${build.src}">
             <classpath refid="classpath.base"/>
         </Compile>
     <copy todir="${build}" flatten="true">

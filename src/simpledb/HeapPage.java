@@ -17,7 +17,7 @@ public class HeapPage implements Page {
 	//当前页面中的tuple的desc
 	final TupleDesc td;
 	//page header用来存储页面中slot的状态
-	//0:不可用(未初始化或已经删除) 1:可用
+	//0:未使用(未初始化或已经删除) 1:已经使用
 	final byte header[];
 
 	final Tuple tuples[];

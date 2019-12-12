@@ -191,7 +191,7 @@ public class HeapFile implements DbFile {
 				if (cur == numPages - 1) return false;
 				reset(++cur);
 			}
-			return cur < numPages && cur != -1 && tupleIterator.hasNext();
+			return cur < numPages && cur != -1;
 		}
 
 
