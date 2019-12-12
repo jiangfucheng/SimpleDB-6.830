@@ -1,5 +1,6 @@
 package simpledb;
 
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 /**
@@ -17,6 +18,7 @@ public class SeqScan implements OpIterator {
 	private DbFileIterator iterator;
 
 	private boolean opened;
+
 	/**
 	 * Creates a sequential scan over the specified table as a part of the
 	 * specified transaction.
@@ -89,17 +91,26 @@ public class SeqScan implements OpIterator {
 	 * prefixed with the tableAlias string from the constructor.
 	 */
 	public TupleDesc getTupleDesc() {
-		return Database.getCatalog().getTupleDesc(tableId);
+		Catalog catalog = Database.getCatalog();
+		TupleDesc td = catalog.getTupleDesc(tableId);
+		Type[] types = new Type[td.numFields()];
+		String[] names = new String[td.numFields()];
+		for (int i = 0; i < types.length; i++) {
+			types[i] = td.getFieldType(i);
+			names[i] = this.tableAlias + "." + td.getFieldName(i);
+		}
+		Arrays.stream(names).map(n -> n + " ").forEach(System.out::print);
+		return new TupleDesc(types,names);
 	}
 
 	public boolean hasNext() throws TransactionAbortedException, DbException {
-		if(!opened) throw new IllegalStateException();
+		if (!opened) throw new IllegalStateException();
 		return iterator.hasNext();
 	}
 
 	public Tuple next() throws NoSuchElementException,
 			TransactionAbortedException, DbException {
-		if(!opened) throw new IllegalStateException();
+		if (!opened) throw new IllegalStateException();
 		return iterator.next();
 	}
 
@@ -110,7 +121,7 @@ public class SeqScan implements OpIterator {
 
 	public void rewind() throws DbException, NoSuchElementException,
 			TransactionAbortedException {
-		if(!opened) throw new IllegalStateException();
+		if (!opened) throw new IllegalStateException();
 		iterator.rewind();
 	}
 }

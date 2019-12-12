@@ -214,7 +214,18 @@ public class TupleDesc implements Serializable {
 	 * @return String describing this descriptor.
 	 */
 	public String toString() {
-		// some code goes here
-		return "";
+		StringBuilder builder = new StringBuilder();
+		for(TDItem item : tdItems){
+			String type = "";
+			if(item.fieldType.equals(Type.INT_TYPE)){
+				type = "INT";
+			}else {
+				type = "STRING";
+			}
+			builder.append(type).append("(").append(item.fieldName).append(")").append(",");
+		}
+		if(builder.length() > 0)
+			builder.deleteCharAt(builder.length() - 1);
+		return builder.toString();
 	}
 }
