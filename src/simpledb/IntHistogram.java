@@ -42,13 +42,15 @@ public class IntHistogram {
 	 */
 	public IntHistogram(int buckets, int min, int max) {
 		this.buckets = buckets;
-		if(buckets > max - min + 1) buckets = max - min + 1;
+		if(this.buckets > max - min + 1)
+			this.buckets = max - min + 1;
 		this.min = min;
 		this.max = max;
 		this.ntups = 0;
 		this.bucketWidth = (max - min + 1) / buckets;
+		if (this.bucketWidth <= 0) bucketWidth = 1;
 		this.histogram = new ArrayList<>();
-		for (int i = 0; i < buckets; i++)
+		for (int i = 0; i < this.buckets; i++)
 			histogram.add(new ArrayList<>());
 	}
 
@@ -108,6 +110,8 @@ public class IntHistogram {
 	}
 
 	private double estimateLessSelectivity(boolean hasEqual, int v) {
+		if (v < min) return 0;
+		if (v > max) return 1;
 		double res = estimateRangeSelectivity(hasEqual, false, v);
 		int idx = getPosition(v);
 		for (int i = 0; i < idx; i++) {
@@ -117,6 +121,8 @@ public class IntHistogram {
 	}
 
 	private double estimateGreaterSelectivity(boolean hasEqual, int v) {
+		if (v < min) return 1;
+		if (v > max) return 0;
 		int idx = getPosition(v);
 		double res = estimateRangeSelectivity(hasEqual, true, v);
 		for (int i = idx + 1; i < buckets; i++) {
@@ -130,8 +136,8 @@ public class IntHistogram {
 		int idx = getPosition(v);
 		List<Integer> bucket = histogram.get(idx);
 		double h = bucket.size();
-		int right = (idx + 1) * bucketWidth;
-		int left = idx & bucketWidth;
+		int right = this.min + idx * bucketWidth + (bucketWidth - 1);
+		int left = this.min + idx * bucketWidth;
 		double b_f = h / ntups;
 		double range;
 		if (greater) {
@@ -146,6 +152,7 @@ public class IntHistogram {
 	}
 
 	private double estimateEqualSelectivity(int v) {
+		if (v < min || v > max) return 0;
 		double res;
 		int idx = getPosition(v);
 		List<Integer> bucket = histogram.get(idx);
@@ -157,7 +164,7 @@ public class IntHistogram {
 	private int getPosition(int v) {
 		int idx = (v - min) / bucketWidth;
 		if (idx >= buckets) idx = buckets - 1;
-		if (idx < 0) idx = 0;
+		if (idx <= 0) idx = 0;
 		return idx;
 	}
 
