@@ -221,7 +221,7 @@ public class BufferPool {
 		if (transactionId == null) return;
 		//缓冲池里的页面一定原来在磁盘中，将页面重写写到磁盘中覆盖掉原来就旧的内容
 		Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(dirtyPage);
-		dirtyPage.markDirty(true, transactionId);
+		dirtyPage.markDirty(false, transactionId);
 	}
 
 	/**
@@ -240,8 +240,16 @@ public class BufferPool {
 		//用淘汰策略淘汰一个页面
 		Iterator<Map.Entry<PageId, Page>> iterator = pagePool.entrySet().iterator();
 		if(iterator.hasNext()){
-			iterator.next();
+			Map.Entry<PageId, Page> pageEntry = iterator.next();
 			iterator.remove();
+			Page page = pageEntry.getValue();
+			if(page.isDirty() != null){
+				try {
+					flushPage(page.getId());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
