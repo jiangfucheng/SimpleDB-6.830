@@ -205,6 +205,23 @@ public class JoinOptimizer {
 
 	}
 
+	public static <T> Set<Set<T>> enumerateSubsets1(Vector<T> v, int size) {
+
+		return null;
+	}
+
+	<T> void help(Set<Set<T>> res, Set<T> set, Vector<T> vector, int idx, int size) {
+		if (size == 0) {
+			res.add(set);
+		}
+		if (idx >= vector.size()) return;
+		for (int i = idx; i < vector.size(); i++) {
+			set.add(vector.get(idx));
+			help(res, set, vector, idx + 1, size - 1);
+			set.remove(vector.get(idx));
+		}
+	}
+
 	/**
 	 * Compute a logical, reasonably efficient join on the specified tables. See
 	 * PS4 for hints on how this should be implemented.
@@ -225,10 +242,29 @@ public class JoinOptimizer {
 			HashMap<String, TableStats> stats,
 			HashMap<String, Double> filterSelectivities, boolean explain)
 			throws ParsingException {
-		//Not necessary for labs 1--3
-
-		// some code goes here
-		//Replace the following
+		if (explain) return joins;
+		//用于缓存在某个集合set中，最小花费的join顺序，最小cost,最小cardinality
+		PlanCache planCache = new PlanCache();
+		//用于存存储某个join顺序和这个顺序和这个顺序的cost和cardinality
+		CostCard bestCostCard = new CostCard();
+		//用动态规划的方式求出最优的join顺序
+		for (int i = 1; i <= joins.size(); i++) {
+			Set<Set<LogicalJoinNode>> sets = enumerateSubsets(joins, i);
+			for (Set<LogicalJoinNode> set : sets) {
+				double bestCost = Double.MAX_VALUE;
+				bestCostCard = new CostCard();
+				for (LogicalJoinNode joinNode : set) {
+					CostCard costCard = computeCostAndCardOfSubplan(stats, filterSelectivities, joinNode, set, bestCost, planCache);
+					if (costCard == null) continue;
+					bestCost = costCard.cost;
+					bestCostCard = costCard;
+				}
+				if (bestCost != Double.MAX_VALUE)
+					planCache.addPlan(set, bestCost, bestCostCard.card, bestCostCard.plan);
+			}
+		}
+		joins.clear();
+		joins.addAll(bestCostCard.plan);
 		return joins;
 	}
 
