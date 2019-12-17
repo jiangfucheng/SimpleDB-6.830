@@ -15,6 +15,76 @@ import java.util.*;
  * @Threadsafe, all fields are final
  */
 public class BufferPool {
+
+	private class LockManager {
+		private Map<PageId, Set<TransactionId>> readMap;
+		private Map<PageId, TransactionId> writeMap;
+
+		public LockManager() {
+			this.readMap = new HashMap<>();
+			this.writeMap = new HashMap<>();
+		}
+
+		public synchronized void lock(TransactionId tid, PageId pid, LockType lockType) throws TransactionAbortedException {
+			initReadSet(pid);
+			if (lockType == LockType.SHARE) {
+				while (writeMap.containsKey(pid) && !writeMap.get(pid).equals(tid)) {
+					try {
+						this.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				Set<TransactionId> readSet = readMap.get(pid);
+				/*if (readSet.contains(tid))
+					throw new TransactionAbortedException();*/
+				readSet.add(tid);
+			} else {
+				Set<TransactionId> readTids = readMap.get(pid);
+				if (readTids.size() == 1)
+					readTids.remove(tid);
+				while (readMap.get(pid).size() > 0 || (writeMap.containsKey(pid) && !writeMap.get(pid).equals(tid))) {
+					try {
+						this.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				writeMap.put(pid, tid);
+			}
+		}
+
+		private void initReadSet(PageId pid) {
+			if (!readMap.containsKey(pid))
+				readMap.put(pid, new HashSet<>());
+		}
+
+		public synchronized void release(TransactionId tid, PageId pid) {
+			initReadSet(pid);
+			TransactionId writeMapTid = writeMap.get(pid);
+			if (writeMapTid != null && writeMapTid.equals(tid))
+				writeMap.remove(pid);
+
+			Set<TransactionId> readMapTids = readMap.get(pid);
+			readMapTids.remove(tid);
+		}
+
+		public synchronized boolean holdLock(TransactionId tid, PageId pid) {
+			initReadSet(pid);
+			TransactionId writeMapTid = writeMap.get(pid);
+			if (writeMapTid != null) {
+				return tid.equals(writeMapTid);
+			}
+			Set<TransactionId> readMapTids = readMap.get(pid);
+			return readMapTids.contains(tid);
+		}
+
+	}
+
+	private enum LockType {
+		SHARE, EXCLUSIVE
+	}
+
 	/**
 	 * Bytes per page, including header.
 	 */
@@ -24,26 +94,29 @@ public class BufferPool {
 
 	/**
 	 * Default number of pages passed to the constructor. This is used by
-	 * other classes. BufferPool should use the numPages argument to the
+	 * other classes. BufferPool should use the capacity argument to the
 	 * constructor instead.
 	 */
 	public static final int DEFAULT_PAGES = 50;
 
 	//BufferPool 允许缓存的页面数量
-	private int numPages;
+	private int capacity;
 
 	//页面缓冲池
 	private Map<PageId, Page> pagePool;
 
+	private LockManager lockManager;
+
 
 	/**
-	 * Creates a BufferPool that caches up to numPages pages.
+	 * Creates a BufferPool that caches up to capacity pages.
 	 *
 	 * @param numPages maximum number of pages in this buffer pool.
 	 */
 	public BufferPool(int numPages) {
-		this.numPages = numPages;
+		this.capacity = numPages;
 		this.pagePool = new LinkedHashMap<>();
+		this.lockManager = new LockManager();
 	}
 
 	public static int getPageSize() {
@@ -77,12 +150,14 @@ public class BufferPool {
 	 */
 	public Page getPage(TransactionId tid, PageId pid, Permissions perm)
 			throws TransactionAbortedException, DbException {
+		LockType lockType = perm == Permissions.READ_ONLY ? LockType.SHARE : LockType.EXCLUSIVE;
+		lockManager.lock(tid, pid, lockType);
 		Page res = pagePool.get(pid);
 		if (res != null) {
 			pagePool.put(pid, res);
 			return res;
 		}
-		if (pagePool.size() == numPages) evictPage();
+		if (pagePool.size() == capacity) evictPage();
 		int tableId = pid.getTableId();
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
 		res = dbFile.readPage(pid);
@@ -100,8 +175,7 @@ public class BufferPool {
 	 * @param pid the ID of the page to unlock
 	 */
 	public void releasePage(TransactionId tid, PageId pid) {
-		// some code goes here
-		// not necessary for lab1|lab2
+		lockManager.release(tid, pid);
 	}
 
 	/**
@@ -118,9 +192,7 @@ public class BufferPool {
 	 * Return true if the specified transaction has a lock on the specified page
 	 */
 	public boolean holdsLock(TransactionId tid, PageId p) {
-		// some code goes here
-		// not necessary for lab1|lab2
-		return false;
+		return lockManager.holdLock(tid, p);
 	}
 
 	/**
@@ -156,7 +228,7 @@ public class BufferPool {
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
 		ArrayList<Page> pages = dbFile.insertTuple(tid, t);
 		for (Page page : pages) {
-			if (pagePool.size() == numPages) evictPage();
+			if (pagePool.size() == capacity) evictPage();
 			pagePool.put(page.getId(), page);
 			page.markDirty(true, tid);
 		}
@@ -180,7 +252,7 @@ public class BufferPool {
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId());
 		ArrayList<Page> pages = dbFile.deleteTuple(tid, t);
 		for (Page page : pages) {
-			if (pagePool.size() == numPages) evictPage();
+			if (pagePool.size() == capacity) evictPage();
 			pagePool.put(page.getId(), page);
 			page.markDirty(true, tid);
 		}
@@ -239,18 +311,24 @@ public class BufferPool {
 	private synchronized void evictPage() throws DbException {
 		//用淘汰策略淘汰一个页面
 		Iterator<Map.Entry<PageId, Page>> iterator = pagePool.entrySet().iterator();
-		if(iterator.hasNext()){
+		while (iterator.hasNext()) {
 			Map.Entry<PageId, Page> pageEntry = iterator.next();
-			iterator.remove();
 			Page page = pageEntry.getValue();
-			if(page.isDirty() != null){
+			if(page.isDirty() == null){
+				iterator.remove();
+				return;
+			}
+			/*iterator.remove();
+			Page page = pageEntry.getValue();
+			if (page.isDirty() != null) {
 				try {
 					flushPage(page.getId());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			}
+			}*/
 		}
+		throw new DbException("no clean page");
 	}
 
 	public Iterator<Map.Entry<PageId, Page>> iterator() {
