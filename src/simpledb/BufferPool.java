@@ -1,5 +1,7 @@
 package simpledb;
 
+import simpledb.util.Graph;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,38 +23,57 @@ public class BufferPool {
     private class LockManager {
         private Map<PageId, Set<TransactionId>> readMap;
         private Map<PageId, TransactionId> writeMap;
+        private Graph<TransactionId> graph;
 
         public LockManager() {
             this.readMap = new HashMap<>();
             this.writeMap = new HashMap<>();
+            graph = new Graph<>();
         }
 
         public synchronized void lock(TransactionId tid, PageId pid, LockType lockType) throws TransactionAbortedException {
             initReadSet(pid);
             if (lockType == LockType.SHARE) {
                 while (writeMap.containsKey(pid) && !writeMap.get(pid).equals(tid)) {
-                    try {
-                        this.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    graph.add(tid, writeMap.get(pid));
+                    dealWithGraph(tid);
                 }
                 Set<TransactionId> readSet = readMap.get(pid);
-				/*if (readSet.contains(tid))
-					throw new TransactionAbortedException();*/
                 readSet.add(tid);
             } else {
                 Set<TransactionId> readTids = readMap.get(pid);
                 if (readTids.size() == 1)
                     readTids.remove(tid);
                 while (readMap.get(pid).size() > 0 || (writeMap.containsKey(pid) && !writeMap.get(pid).equals(tid))) {
-                    try {
-                        this.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    if (readTids.size() == 1)
+                        readTids.remove(tid);
+                    if(readMap.get(pid).size() == 0) break;
+                    Set<TransactionId> readTidsTmp = readMap.get(pid);
+                    if (readTidsTmp != null && readTidsTmp.size() > 0) {
+                        for (TransactionId transactionId : readTidsTmp) {
+                            graph.add(tid, transactionId);
+                        }
+                    } else {
+                        graph.add(tid, writeMap.get(pid));
                     }
+                    dealWithGraph(tid);
                 }
                 writeMap.put(pid, tid);
+            }
+        }
+
+        /**
+         * 如果wait-for graph 有环，直接终止当前事务，抛出异常
+         */
+        private void dealWithGraph(TransactionId tid) throws TransactionAbortedException {
+            if (graph.hasCircle()) {
+                graph.remove(tid);
+                throw new TransactionAbortedException();
+            }
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 
@@ -64,11 +85,16 @@ public class BufferPool {
         public synchronized void release(TransactionId tid, PageId pid) {
             initReadSet(pid);
             TransactionId writeMapTid = writeMap.get(pid);
-            if (writeMapTid != null && writeMapTid.equals(tid))
+            if (writeMapTid != null && writeMapTid.equals(tid)) {
                 writeMap.remove(pid);
+            }
 
             Set<TransactionId> readMapTids = readMap.get(pid);
-            readMapTids.remove(tid);
+            try {
+                readMapTids.remove(tid);
+            } finally {
+                this.notifyAll();
+            }
         }
 
         public synchronized void releaseLockByTransactionId(TransactionId tid) {
@@ -76,13 +102,12 @@ public class BufferPool {
                 entry.getValue().removeIf(transactionId -> transactionId.equals(tid));
             }
 
-            for (Iterator<Map.Entry<PageId, TransactionId>> iterator = writeMap.entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry<PageId, TransactionId> entry = iterator.next();
-                if (entry.getValue().equals(tid)) {
-                    iterator.remove();
-                }
+            writeMap.entrySet().removeIf(entry -> entry.getValue().equals(tid));
+            try {
+                graph.remove(tid);
+            } finally {
+                this.notifyAll();
             }
-            this.notifyAll();
         }
 
         public synchronized boolean holdLock(TransactionId tid, PageId pid) {
@@ -235,6 +260,7 @@ public class BufferPool {
             recovery(tid);
         }
         lockManager.releaseLockByTransactionId(tid);
+
     }
 
     private void recovery(TransactionId tid) throws IOException {
@@ -328,13 +354,15 @@ public class BufferPool {
      *
      * @param pid an ID indicating the page to flush
      */
-    private synchronized void flushPage(PageId pid) throws IOException {
+    private synchronized boolean flushPage(PageId pid) throws IOException {
         Page dirtyPage = pagePool.get(pid);
+        if (dirtyPage == null) return false;
         TransactionId transactionId = dirtyPage.isDirty();
-        if (transactionId == null) return;
+        if (transactionId == null) return false;
         //缓冲池里的页面一定原来在磁盘中，将页面重写写到磁盘中覆盖掉原来就旧的内容
         Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(dirtyPage);
         dirtyPage.markDirty(false, transactionId);
+        return true;
     }
 
     /**
@@ -345,8 +373,8 @@ public class BufferPool {
         if (pages == null) return;
         while (!pages.isEmpty()) {
             Page page = pages.poll();
-            flushPage(page.getId());
-            page.markDirty(false, tid);
+            if (flushPage(page.getId()))
+                page.markDirty(false, tid);
         }
     }
 

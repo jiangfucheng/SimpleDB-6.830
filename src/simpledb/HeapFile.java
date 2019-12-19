@@ -198,6 +198,10 @@ public class HeapFile implements DbFile {
         @Override
         public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
             if (!opened || cur >= numPages) throw new NoSuchElementException();
+            while (tupleIterator == null || !tupleIterator.hasNext()) {
+                if (cur == numPages - 1) throw new NoSuchElementException();
+                reset(++cur);
+            }
             return tupleIterator.next();
         }
 
