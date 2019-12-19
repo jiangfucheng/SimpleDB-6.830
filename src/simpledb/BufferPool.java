@@ -2,6 +2,8 @@ package simpledb;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -69,6 +71,20 @@ public class BufferPool {
 			readMapTids.remove(tid);
 		}
 
+		public synchronized void releaseLockByTransactionId(TransactionId tid) {
+			for (Map.Entry<PageId, Set<TransactionId>> entry : readMap.entrySet()) {
+				entry.getValue().removeIf(transactionId -> transactionId.equals(tid));
+			}
+
+			for (Iterator<Map.Entry<PageId, TransactionId>> iterator = writeMap.entrySet().iterator(); iterator.hasNext(); ) {
+				Map.Entry<PageId, TransactionId> entry = iterator.next();
+				if (entry.getValue().equals(tid)) {
+					iterator.remove();
+				}
+			}
+			this.notifyAll();
+		}
+
 		public synchronized boolean holdLock(TransactionId tid, PageId pid) {
 			initReadSet(pid);
 			TransactionId writeMapTid = writeMap.get(pid);
@@ -107,6 +123,8 @@ public class BufferPool {
 
 	private LockManager lockManager;
 
+	private ConcurrentHashMap<TransactionId, ConcurrentLinkedQueue<Page>> backupPage;
+
 
 	/**
 	 * Creates a BufferPool that caches up to capacity pages.
@@ -117,6 +135,7 @@ public class BufferPool {
 		this.capacity = numPages;
 		this.pagePool = new LinkedHashMap<>();
 		this.lockManager = new LockManager();
+		this.backupPage = new ConcurrentHashMap<>();
 	}
 
 	public static int getPageSize() {
@@ -162,6 +181,13 @@ public class BufferPool {
 		DbFile dbFile = Database.getCatalog().getDatabaseFile(tableId);
 		res = dbFile.readPage(pid);
 		pagePool.put(pid, res);
+		//备份这个页面
+		res.setBeforeImage();
+		if (!backupPage.containsKey(tid)) {
+			backupPage.put(tid, new ConcurrentLinkedQueue<>());
+		}
+		ConcurrentLinkedQueue<Page> pageQueue = backupPage.get(tid);
+		pageQueue.offer(res);
 		return res;
 	}
 
@@ -184,8 +210,7 @@ public class BufferPool {
 	 * @param tid the ID of the transaction requesting the unlock
 	 */
 	public void transactionComplete(TransactionId tid) throws IOException {
-		// some code goes here
-		// not necessary for lab1|lab2
+		transactionComplete(tid, true);
 	}
 
 	/**
@@ -204,8 +229,24 @@ public class BufferPool {
 	 */
 	public void transactionComplete(TransactionId tid, boolean commit)
 			throws IOException {
-		// some code goes here
-		// not necessary for lab1|lab2
+		if (commit) {
+			flushPages(tid);
+		} else {
+			recovery(tid);
+		}
+		lockManager.releaseLockByTransactionId(tid);
+	}
+
+	private void recovery(TransactionId tid) throws IOException {
+		ConcurrentLinkedQueue<Page> pages = backupPage.get(tid);
+		if (pages == null) return;
+		while (!pages.isEmpty()) {
+			Page page = pages.poll();
+			Page beforePage = page.getBeforeImage();
+			DbFile dbFile = Database.getCatalog().getDatabaseFile(beforePage.getId().getTableId());
+			dbFile.writePage(beforePage);
+			pagePool.put(beforePage.getId(), beforePage);
+		}
 	}
 
 	/**
@@ -300,8 +341,13 @@ public class BufferPool {
 	 * Write all pages of the specified transaction to disk.
 	 */
 	public synchronized void flushPages(TransactionId tid) throws IOException {
-		// some code goes here
-		// not necessary for lab1|lab2
+		ConcurrentLinkedQueue<Page> pages = backupPage.get(tid);
+		if (pages == null) return;
+		while (!pages.isEmpty()) {
+			Page page = pages.poll();
+			flushPage(page.getId());
+			page.markDirty(false, tid);
+		}
 	}
 
 	/**
@@ -314,7 +360,7 @@ public class BufferPool {
 		while (iterator.hasNext()) {
 			Map.Entry<PageId, Page> pageEntry = iterator.next();
 			Page page = pageEntry.getValue();
-			if(page.isDirty() == null){
+			if (page.isDirty() == null) {
 				iterator.remove();
 				return;
 			}
