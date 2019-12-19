@@ -1,26 +1,24 @@
 package simpledb;
 
 //import java.util.HashMap;
+
 import java.util.Map;
 
 /**
  * A utility class, which computes the estimated cardinalities of an operator
  * tree.
- * 
+ * <p>
  * All methods have been fully provided. No extra codes are required.
  */
 public class OperatorCardinality {
 
     /**
-     * 
-     * @param tableAliasToId
-     *            table alias to table id mapping
-     * @param tableStats
-     *            table statistics
-     * */
+     * @param tableAliasToId table alias to table id mapping
+     * @param tableStats     table statistics
+     */
     public static boolean updateOperatorCardinality(Operator o,
-            Map<String, Integer> tableAliasToId,
-            Map<String, TableStats> tableStats) {
+                                                    Map<String, Integer> tableAliasToId,
+                                                    Map<String, TableStats> tableStats) {
         if (o instanceof Filter) {
             return updateFilterCardinality((Filter) o, tableAliasToId,
                     tableStats);
@@ -53,8 +51,8 @@ public class OperatorCardinality {
     }
 
     private static boolean updateFilterCardinality(Filter f,
-            Map<String, Integer> tableAliasToId,
-            Map<String, TableStats> tableStats) {
+                                                   Map<String, Integer> tableAliasToId,
+                                                   Map<String, TableStats> tableStats) {
         OpIterator child = f.getChildren()[0];
         Predicate pred = f.getPredicate();
         String[] tmp = child.getTupleDesc().getFieldName(pred.getField())
@@ -89,8 +87,8 @@ public class OperatorCardinality {
     }
 
     private static boolean updateJoinCardinality(Join j,
-            Map<String, Integer> tableAliasToId,
-            Map<String, TableStats> tableStats) {
+                                                 Map<String, Integer> tableAliasToId,
+                                                 Map<String, TableStats> tableStats) {
 
         OpIterator[] children = j.getChildren();
         OpIterator child1 = children[0];
@@ -121,8 +119,8 @@ public class OperatorCardinality {
             child1Card = child1O.getEstimatedCardinality();
             child1Card = child1Card > 0 ? child1Card : 1;
         } else if (child1 instanceof SeqScan) {
-            child1Card = (int) (tableStats.get(((SeqScan) child1)
-                    .getTableName()).estimateTableCardinality(1.0));
+            child1Card = tableStats.get(((SeqScan) child1)
+                    .getTableName()).estimateTableCardinality(1.0);
         }
 
         if (child2 instanceof Operator) {
@@ -133,20 +131,20 @@ public class OperatorCardinality {
             child2Card = child2O.getEstimatedCardinality();
             child2Card = child2Card > 0 ? child2Card : 1;
         } else if (child2 instanceof SeqScan) {
-            child2Card = (int) (tableStats.get(((SeqScan) child2)
-                    .getTableName()).estimateTableCardinality(1.0));
+            child2Card = tableStats.get(((SeqScan) child2)
+                    .getTableName()).estimateTableCardinality(1.0);
         }
 
         j.setEstimatedCardinality(JoinOptimizer.estimateTableJoinCardinality(j
-                .getJoinPredicate().getOperator(), tableAlias1, tableAlias2,
+                        .getJoinPredicate().getOperator(), tableAlias1, tableAlias2,
                 pureFieldName1, pureFieldName2, child1Card, child2Card,
                 child1HasJoinPK, child2HasJoinPK, tableStats, tableAliasToId));
         return child1HasJoinPK || child2HasJoinPK;
     }
 
     private static boolean updateHashEquiJoinCardinality(HashEquiJoin j,
-            Map<String, Integer> tableAliasToId,
-            Map<String, TableStats> tableStats) {
+                                                         Map<String, Integer> tableAliasToId,
+                                                         Map<String, TableStats> tableStats) {
 
         OpIterator[] children = j.getChildren();
         OpIterator child1 = children[0];
@@ -164,11 +162,9 @@ public class OperatorCardinality {
         boolean child1HasJoinPK = Database.getCatalog()
                 .getPrimaryKey(tableAliasToId.get(tableAlias1))
                 .equals(pureFieldName1);
-        ;
         boolean child2HasJoinPK = Database.getCatalog()
                 .getPrimaryKey(tableAliasToId.get(tableAlias2))
                 .equals(pureFieldName2);
-        ;
 
         if (child1 instanceof Operator) {
             Operator child1O = (Operator) child1;
@@ -178,8 +174,8 @@ public class OperatorCardinality {
             child1Card = child1O.getEstimatedCardinality();
             child1Card = child1Card > 0 ? child1Card : 1;
         } else if (child1 instanceof SeqScan) {
-            child1Card = (int) (tableStats.get(((SeqScan) child1)
-                    .getTableName()).estimateTableCardinality(1.0));
+            child1Card = tableStats.get(((SeqScan) child1)
+                    .getTableName()).estimateTableCardinality(1.0);
         }
 
         if (child2 instanceof Operator) {
@@ -190,20 +186,20 @@ public class OperatorCardinality {
             child2Card = child2O.getEstimatedCardinality();
             child2Card = child2Card > 0 ? child2Card : 1;
         } else if (child2 instanceof SeqScan) {
-            child2Card = (int) (tableStats.get(((SeqScan) child2)
-                    .getTableName()).estimateTableCardinality(1.0));
+            child2Card = tableStats.get(((SeqScan) child2)
+                    .getTableName()).estimateTableCardinality(1.0);
         }
 
         j.setEstimatedCardinality(JoinOptimizer.estimateTableJoinCardinality(j
-                .getJoinPredicate().getOperator(), tableAlias1, tableAlias2,
+                        .getJoinPredicate().getOperator(), tableAlias1, tableAlias2,
                 pureFieldName1, pureFieldName2, child1Card, child2Card,
                 child1HasJoinPK, child2HasJoinPK, tableStats, tableAliasToId));
         return child1HasJoinPK || child2HasJoinPK;
     }
 
     private static boolean updateAggregateCardinality(Aggregate a,
-            Map<String, Integer> tableAliasToId,
-            Map<String, TableStats> tableStats) {
+                                                      Map<String, Integer> tableAliasToId,
+                                                      Map<String, TableStats> tableStats) {
         OpIterator child = a.getChildren()[0];
         int childCard = 1;
         boolean hasJoinPK = false;
@@ -220,8 +216,8 @@ public class OperatorCardinality {
         }
 
         if (child instanceof SeqScan) {
-            childCard = (int) (tableStats.get(((SeqScan) child).getTableName())
-                    .estimateTableCardinality(1.0));
+            childCard = tableStats.get(((SeqScan) child).getTableName())
+                    .estimateTableCardinality(1.0);
         }
 
         String[] tmp = a.groupFieldName().split("[.]");

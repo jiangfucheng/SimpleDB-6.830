@@ -14,7 +14,7 @@ import java.io.IOException;
  * @author jiangfucheng
  */
 public class Test {
-	public static void main(String[] args) throws IOException, TransactionAbortedException, DbException {
-		SimpleDb.main(new String[]{"parser","catalog.txt"});
-	}
+    public static void main(String[] args) throws IOException, TransactionAbortedException, DbException {
+        SimpleDb.main(new String[]{"parser", "catalog.txt"});
+    }
 }

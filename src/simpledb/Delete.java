@@ -17,14 +17,13 @@ public class Delete extends Operator {
     private TupleDesc resultTupleDesc;
 
     private boolean called;
+
     /**
      * Constructor specifying the transaction that this delete belongs to as
      * well as the child to read from.
-     * 
-     * @param t
-     *            The transaction this delete runs in
-     * @param child
-     *            The child operator from which to read tuples for deletion
+     *
+     * @param t     The transaction this delete runs in
+     * @param child The child operator from which to read tuples for deletion
      */
     public Delete(TransactionId t, OpIterator child) {
         this.transactionId = t;
@@ -35,7 +34,7 @@ public class Delete extends Operator {
     }
 
     public TupleDesc getTupleDesc() {
-       return this.resultTupleDesc;
+        return this.resultTupleDesc;
     }
 
     public void open() throws DbException, TransactionAbortedException {
@@ -57,7 +56,7 @@ public class Delete extends Operator {
      * Deletes tuples as they are read from the child operator. Deletes are
      * processed via the buffer pool (which can be accessed via the
      * Database.getBufferPool() method.
-     * 
+     *
      * @return A 1-field tuple containing the number of deleted records.
      * @see Database#getBufferPool
      * @see BufferPool#deleteTuple
@@ -65,10 +64,10 @@ public class Delete extends Operator {
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         BufferPool bufferPool = Database.getBufferPool();
         int count = 0;
-        if(called) return null;
-        while(child.hasNext()){
+        if (called) return null;
+        while (child.hasNext()) {
             try {
-                bufferPool.deleteTuple(transactionId,child.next());
+                bufferPool.deleteTuple(transactionId, child.next());
                 count++;
             } catch (IOException e) {
                 throw new DbException(e.getMessage());
@@ -76,7 +75,7 @@ public class Delete extends Operator {
         }
         called = true;
         Tuple result = new Tuple(resultTupleDesc);
-        result.setField(0,new IntField(count));
+        result.setField(0, new IntField(count));
         return result;
     }
 

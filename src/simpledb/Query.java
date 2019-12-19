@@ -8,7 +8,7 @@ import java.util.*;
  * plan in the form of a high level OpIterator (built by initiating the
  * constructors of query plans) and runs it as a part of a specified
  * transaction.
- * 
+ *
  * @author Sam Madden
  */
 
@@ -61,7 +61,9 @@ public class Query implements Serializable {
         return this.op.getTupleDesc();
     }
 
-    /** @return true if there are more tuples remaining. */
+    /**
+     * @return true if there are more tuples remaining.
+     */
     public boolean hasNext() throws DbException, TransactionAbortedException {
         return op.hasNext();
     }
@@ -69,14 +71,11 @@ public class Query implements Serializable {
     /**
      * Returns the next tuple, or throws NoSuchElementException if the tupleIterator
      * is closed.
-     * 
+     *
      * @return The next tuple in the tupleIterator
-     * @throws DbException
-     *             If there is an error in the database system
-     * @throws NoSuchElementException
-     *             If the tupleIterator has finished iterating
-     * @throws TransactionAbortedException
-     *             If the transaction is aborted (e.g., due to a deadlock)
+     * @throws DbException                 If there is an error in the database system
+     * @throws NoSuchElementException      If the tupleIterator has finished iterating
+     * @throws TransactionAbortedException If the transaction is aborted (e.g., due to a deadlock)
      */
     public Tuple next() throws DbException, NoSuchElementException,
             TransactionAbortedException {
@@ -86,7 +85,9 @@ public class Query implements Serializable {
         return op.next();
     }
 
-    /** Close the tupleIterator */
+    /**
+     * Close the tupleIterator
+     */
     public void close() throws IOException {
         op.close();
         started = false;
@@ -103,7 +104,7 @@ public class Query implements Serializable {
         for (int i = 0; i < names.length() + td.numFields() * 4; i++) {
             System.out.print("-");
         }
-        System.out.println("");
+        System.out.println();
 
         this.start();
         int cnt = 0;
