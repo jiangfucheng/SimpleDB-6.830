@@ -248,7 +248,6 @@ public class JoinOptimizer {
         //用于存存储某个join顺序和这个顺序和这个顺序的cost和cardinality
         CostCard bestCostCard = new CostCard();
         //用动态规划的方式求出最优的join顺序
-        System.out.println("orderJoins debug 1");
         for (int i = 1; i <= joins.size(); i++) {
             Set<Set<LogicalJoinNode>> sets = enumerateSubsets(joins, i);
             for (Set<LogicalJoinNode> set : sets) {
