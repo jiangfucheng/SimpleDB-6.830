@@ -55,7 +55,13 @@ public class StringAggregator implements Aggregator {
      */
     @SuppressWarnings("all")
     public void mergeTupleIntoGroup(Tuple tup) {
-        Field field = tup.getField(groupField);
+        Field field;
+        if (noGrouping) {
+            field = IntegerAggregator.DEFAULT_FIELD;
+        } else {
+            field = tup.getField(groupField);
+            tup.getField(groupField);
+        }
         if (!group.containsKey(field)) {
             group.put(field, new ArrayList<>());
         }

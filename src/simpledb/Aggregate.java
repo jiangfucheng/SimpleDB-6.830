@@ -102,6 +102,7 @@ public class Aggregate extends Operator {
     public void open() throws NoSuchElementException, DbException,
             TransactionAbortedException {
         super.open();
+        child.open();
         if (!merged) {
             mergeAll();
         }

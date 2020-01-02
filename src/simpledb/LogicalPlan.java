@@ -330,7 +330,6 @@ public class LogicalPlan {
             filterSelectivities.put(table.alias, 1.0);
 
         }
-
         Iterator<LogicalFilterNode> filterIt = filters.iterator();
         while (filterIt.hasNext()) {
             LogicalFilterNode lf = filterIt.next();
@@ -372,7 +371,6 @@ public class LogicalPlan {
         JoinOptimizer jo = new JoinOptimizer(this, joins);
 
         joins = jo.orderJoins(statsMap, filterSelectivities, explain);
-
         Iterator<LogicalJoinNode> joinIt = joins.iterator();
         while (joinIt.hasNext()) {
             LogicalJoinNode lj = joinIt.next();
@@ -380,7 +378,6 @@ public class LogicalPlan {
             OpIterator plan2;
             boolean isSubqueryJoin = lj instanceof LogicalSubplanJoinNode;
             String t1name, t2name;
-
             if (equivMap.get(lj.t1Alias) != null)
                 t1name = equivMap.get(lj.t1Alias);
             else
@@ -392,7 +389,6 @@ public class LogicalPlan {
                 t2name = lj.t2Alias;
 
             plan1 = subplanMap.get(t1name);
-
             if (isSubqueryJoin) {
                 plan2 = ((LogicalSubplanJoinNode) lj).subPlan;
                 if (plan2 == null)
@@ -400,7 +396,6 @@ public class LogicalPlan {
             } else {
                 plan2 = subplanMap.get(t2name);
             }
-
             if (plan1 == null)
                 throw new ParsingException("Unknown table in WHERE clause " + lj.t1Alias);
             if (plan2 == null)
@@ -409,7 +404,6 @@ public class LogicalPlan {
             OpIterator j;
             j = JoinOptimizer.instantiateJoin(lj, plan1, plan2);
             subplanMap.put(t1name, j);
-
             if (!isSubqueryJoin) {
                 subplanMap.remove(t2name);
                 equivMap.put(t2name, t1name);  //keep track of the fact that this new node contains both tables

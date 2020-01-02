@@ -28,6 +28,8 @@ public class IntegerAggregator implements Aggregator {
 
     private boolean noGrouping;
 
+    public static final Field DEFAULT_FIELD = new IntField(0);
+
     /**
      * Aggregate constructor
      *
@@ -56,7 +58,13 @@ public class IntegerAggregator implements Aggregator {
      * @param tup the Tuple containing an aggregate field and a group-by field
      */
     public void mergeTupleIntoGroup(Tuple tup) {
-        Field field = tup.getField(groupByField);
+        Field field;
+        if (noGrouping) {
+            field = DEFAULT_FIELD;
+        } else {
+            field = tup.getField(groupByField);
+            tup.getField(groupByField);
+        }
         if (!group.containsKey(field)) {
             group.put(field, new ArrayList<>());
         }

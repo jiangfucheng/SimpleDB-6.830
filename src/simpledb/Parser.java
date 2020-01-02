@@ -1,15 +1,14 @@
 package simpledb;
 
 import Zql.*;
+import jline.ArgumentCompletor;
+import jline.ConsoleReader;
+import jline.SimpleCompletor;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import jline.ArgumentCompletor;
-import jline.ConsoleReader;
-import jline.SimpleCompletor;
 
 public class Parser {
     static boolean explain = false;
@@ -279,13 +278,11 @@ public class Parser {
             throws TransactionAbortedException, DbException, IOException,
             simpledb.ParsingException, Zql.ParseException {
         Query query = new Query(tId);
-
         LogicalPlan lp = parseQueryLogicalPlan(tId, s);
         OpIterator physicalPlan = lp.physicalPlan(tId,
                 TableStats.getStatsMap(), explain);
         query.setPhysicalPlan(physicalPlan);
         query.setLogicalPlan(lp);
-
         if (physicalPlan != null) {
             Class<?> c;
             try {
@@ -318,7 +315,6 @@ public class Parser {
                 e.printStackTrace();
             }
         }
-
         return query;
     }
 
@@ -531,7 +527,6 @@ public class Parser {
                     }
                     if (query != null)
                         query.execute();
-
                     if (!inUserTrans && curtrans != null) {
                         curtrans.commit();
                         System.out.println("Transaction "
